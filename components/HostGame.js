@@ -15,16 +15,6 @@ export default function HostGame({ onExit }) {
 
   useEffect(() => () => unsubRef.current?.(), []);
 
-  // The live game view (MultiplayerGame) opens its own subscription for the
-  // same room once it mounts. Tear down this lobby-only subscription right
-  // as we hand off, so we're never listening on the same room twice at once.
-  useEffect(() => {
-    if (room?.status === "active" && unsubRef.current) {
-      unsubRef.current();
-      unsubRef.current = null;
-    }
-  }, [room?.status]);
-
   async function handleCreate(e) {
     e.preventDefault();
     setError("");
@@ -33,10 +23,17 @@ export default function HostGame({ onExit }) {
       const hostColor = color === "random" ? (Math.random() < 0.5 ? "w" : "b") : color;
       const data = await createGame({ hostColor, hostName: name.trim() || "Host" });
       setRoom(data);
-      unsubRef.current = subscribeToGame(data.code, (newRow) => {
-        if (!newRow || !newRow.code) return;
-        setRoom(newRow);
-      });
+      // Namespaced as "lobby" (not "game") so this waiting-room watcher can
+      // never collide with the separate subscription MultiplayerGame opens
+      // for the same room code once the handoff happens.
+      unsubRef.current = subscribeToGame(
+        data.code,
+        (newRow) => {
+          if (!newRow || !newRow.code) return;
+          setRoom(newRow);
+        },
+        "lobby"
+      );
     } catch (err) {
       setError(err.message || "Couldn't create a game. Try again.");
     } finally {
