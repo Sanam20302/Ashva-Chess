@@ -38,8 +38,8 @@ export default function MultiplayerGame({ code, myColor, myName, initialRow, onE
 
   useEffect(() => {
     const unsubscribe = subscribeToGame(code, (newRow) => {
-      setGame(loadFromRow(newRow));
       setRow(newRow);
+      setGame(loadFromRow(newRow));
     });
     fetchMessages(code).then(setMessages).catch(() => {});
     const unsubMessages = subscribeToMessages(code, (msg) => {
@@ -123,7 +123,9 @@ export default function MultiplayerGame({ code, myColor, myName, initialRow, onE
     <div className="wrap">
       <header>
         <div>
-          <h1>Ashva</h1>
+          <h1>
+            End<span className="accent">game</span>
+          </h1>
           <div className="tagline">
             {myName} ({myColor === "w" ? "White" : "Black"}) vs {opponentName || "…"}
           </div>

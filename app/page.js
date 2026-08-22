@@ -5,12 +5,17 @@ import Menu from "@/components/Menu";
 import LocalGame from "@/components/LocalGame";
 import HostGame from "@/components/HostGame";
 import JoinGame from "@/components/JoinGame";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function Home() {
   const [view, setView] = useState("menu");
 
-  if (view === "local") return <LocalGame onExit={() => setView("menu")} />;
-  if (view === "host") return <HostGame onExit={() => setView("menu")} />;
-  if (view === "join") return <JoinGame onExit={() => setView("menu")} />;
-  return <Menu onSelect={setView} />;
+  return (
+    <ErrorBoundary key={view}>
+      {view === "local" && <LocalGame onExit={() => setView("menu")} />}
+      {view === "host" && <HostGame onExit={() => setView("menu")} />}
+      {view === "join" && <JoinGame onExit={() => setView("menu")} />}
+      {view === "menu" && <Menu onSelect={setView} />}
+    </ErrorBoundary>
+  );
 }

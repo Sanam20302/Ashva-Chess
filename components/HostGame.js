@@ -15,6 +15,16 @@ export default function HostGame({ onExit }) {
 
   useEffect(() => () => unsubRef.current?.(), []);
 
+  // The live game view (MultiplayerGame) opens its own subscription for the
+  // same room once it mounts. Tear down this lobby-only subscription right
+  // as we hand off, so we're never listening on the same room twice at once.
+  useEffect(() => {
+    if (room?.status === "active" && unsubRef.current) {
+      unsubRef.current();
+      unsubRef.current = null;
+    }
+  }, [room?.status]);
+
   async function handleCreate(e) {
     e.preventDefault();
     setError("");
@@ -51,8 +61,8 @@ export default function HostGame({ onExit }) {
     return (
       <MultiplayerGame
         code={room.code}
-        myColor={room.host_color}
-        myName={room.host_name}
+        myColor={room.host_color || "w"}
+        myName={room.host_name || "Host"}
         initialRow={room}
         onExit={onExit}
       />
@@ -63,7 +73,9 @@ export default function HostGame({ onExit }) {
     <div className="wrap">
       <header>
         <div>
-          <h1>Ashva</h1>
+          <h1>
+            End<span className="accent">game</span>
+          </h1>
           <div className="tagline">Host a game</div>
         </div>
         <button onClick={onExit}>← Menu</button>
