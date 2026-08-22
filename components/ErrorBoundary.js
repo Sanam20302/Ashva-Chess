@@ -5,16 +5,14 @@ import { Component } from "react";
 export default class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
   }
 
   componentDidCatch(error, info) {
-    // Logged so it's visible in the browser console / Vercel logs even
-    // though the user just sees the friendly fallback below.
     console.error("Endgame crashed:", error, info);
   }
 
@@ -30,6 +28,22 @@ export default class ErrorBoundary extends Component {
                 safe on the server — reloading will bring you back to a
                 clean menu.
               </p>
+              {this.state.error?.message && (
+                <p
+                  style={{
+                    color: "#e0918a",
+                    fontSize: 12,
+                    fontFamily: "monospace",
+                    wordBreak: "break-word",
+                    background: "rgba(0,0,0,0.25)",
+                    padding: "10px 12px",
+                    borderRadius: 4,
+                    textAlign: "left",
+                  }}
+                >
+                  {this.state.error.message}
+                </p>
+              )}
               <button className="primary" onClick={() => window.location.reload()}>
                 Reload
               </button>

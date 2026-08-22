@@ -23,7 +23,16 @@ export default function LocalGame({ onExit }) {
     setTimeout(() => {
       const next = cloneChess(currentGame);
       const aiMove = pickAiMove(next, difficulty);
-      if (aiMove) next.move(aiMove);
+      if (aiMove) {
+        try {
+          next.move(aiMove);
+        } catch (e) {
+          // Defensive: pickAiMove only returns moves chess.js itself
+          // generated as legal, so this shouldn't fire — but chess.js
+          // throws (rather than returning null) on a bad move object,
+          // so we don't want that to take down the whole page.
+        }
+      }
       setAiThinking(false);
       setGame(next);
     }, 220);
@@ -33,9 +42,13 @@ export default function LocalGame({ onExit }) {
     const next = cloneChess(game);
     const legal = next.moves({ square: from, verbose: true });
     const target = legal.find((m) => m.to === to);
-    const promotion = target && target.flags.includes("p") ? "q" : undefined;
-    const move = next.move({ from, to, promotion });
-    if (!move) return;
+    if (!target) return;
+    const promotion = target.flags.includes("p") ? "q" : undefined;
+    try {
+      next.move({ from, to, promotion });
+    } catch (e) {
+      return;
+    }
     setGame(next);
     runAiTurn(next);
   }
@@ -74,7 +87,9 @@ export default function LocalGame({ onExit }) {
     <div className="wrap">
       <header>
         <div>
-          <h1>Ashva</h1>
+          <h1>
+            End<span className="accent">game</span>
+          </h1>
           <div className="tagline">Playing against the computer</div>
         </div>
         <button onClick={onExit}>← Menu</button>

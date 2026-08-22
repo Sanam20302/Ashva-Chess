@@ -34,6 +34,7 @@ export default function HostGame({ onExit }) {
       const data = await createGame({ hostColor, hostName: name.trim() || "Host" });
       setRoom(data);
       unsubRef.current = subscribeToGame(data.code, (newRow) => {
+        if (!newRow || !newRow.code) return;
         setRoom(newRow);
       });
     } catch (err) {

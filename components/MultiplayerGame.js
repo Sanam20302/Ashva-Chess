@@ -38,6 +38,7 @@ export default function MultiplayerGame({ code, myColor, myName, initialRow, onE
 
   useEffect(() => {
     const unsubscribe = subscribeToGame(code, (newRow) => {
+      if (!newRow || !newRow.code) return; // ignore DELETE events (empty payload)
       setRow(newRow);
       setGame(loadFromRow(newRow));
     });
@@ -60,8 +61,17 @@ export default function MultiplayerGame({ code, myColor, myName, initialRow, onE
     const next = cloneChess(game);
     const legal = next.moves({ square: from, verbose: true });
     const target = legal.find((m) => m.to === to);
-    const promotion = target && target.flags.includes("p") ? "q" : undefined;
-    const move = next.move({ from, to, promotion });
+    if (!target) return;
+    const promotion = target.flags.includes("p") ? "q" : undefined;
+    let move;
+    try {
+      move = next.move({ from, to, promotion });
+    } catch (e) {
+      // chess.js throws on an illegal move object rather than returning
+      // null — this guards the click handler from ever taking the whole
+      // page down over a move that turns out not to be legal after all.
+      return;
+    }
     if (!move) return;
     setGame(next);
 
